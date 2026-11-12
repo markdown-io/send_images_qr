@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enviar imagen — Convertidor</title>
+<meta name="description" content="Envía una imagen de tu celular a tu computador. Viaja directo entre tus dispositivos y no se guarda en ningún servidor.">
+<link rel="stylesheet" href="paginas.css">
+<style>
+  main.app{max-width:760px; margin:0 auto; padding:28px 18px 60px;}
+  h1.page{font-family:var(--mono); font-size:26px; letter-spacing:-0.02em; margin:6px 0 8px;}
+  h1.page .hash{color:var(--accent-2); margin-right:10px;}
+  .lead{font-size:15.5px; color:var(--ink-muted); margin:0 0 22px;}
+  .modes{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px;}
+  @media (max-width:520px){ .modes{grid-template-columns:1fr;} }
+  .mode{
+    text-align:left; background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:16px; cursor:pointer; color:var(--ink); font-family:var(--sans);
+  }
+  .mode.active{border-color:var(--accent-2); box-shadow:inset 0 0 0 1px var(--accent-2);}
+  .mode b{display:block; font-family:var(--mono); font-size:14px; margin-bottom:4px;}
+  .mode span{font-size:13.5px; color:var(--ink-muted);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .step-title{font-family:var(--mono); font-weight:700; font-size:14px; margin:20px 0 8px;}
+  .hint{font-size:13.5px; color:var(--ink-muted); margin:6px 0 12px;}
+  .btn{
+    display:inline-block; font-family:var(--mono); font-size:13px; font-weight:700;
+    background:var(--accent-2); color:#fff; border:none; border-radius:8px;
+    padding:11px 16px; cursor:pointer; text-decoration:none;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:disabled{opacity:.45; cursor:default; filter:none;}
+  .btn.outline{background:transparent; color:var(--ink); border:1px solid var(--line);}
+  textarea.code{
+    width:100%; min-height:86px; font-family:var(--mono); font-size:12px; line-height:1.4;
+    background:var(--surface-2); color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; padding:10px; resize:vertical; word-break:break-all;
+  }
+  .row{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+  .status{font-family:var(--mono); font-size:12.5px; color:var(--ink-muted); margin:12px 0; min-height:20px;}
+  .status.ok{color:var(--accent-2);}
+  .status.err{color:#B5472B;}
+  .file-in{font-family:var(--mono); font-size:13px; color:var(--ink); margin:8px 0;}
+  .progress{height:6px; background:var(--line); border-radius:4px; overflow:hidden; margin:10px 0; display:none;}
+  .progress i{display:block; height:100%; width:0; background:var(--accent-2); transition:width .15s;}
+  .preview{
+    margin-top:18px; background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:14px; text-align:center;
+  }
+  .preview img{max-width:100%; max-height:60vh; border-radius:6px;}
+  .meta{font-family:var(--mono); font-size:12px; color:var(--ink-muted); margin:0 0 10px;}
+  .privacy{
+    margin-top:34px; border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; background:var(--surface-2); font-size:14px; color:var(--ink-muted);
+  }
+  .privacy b{color:var(--ink); font-family:var(--mono); font-size:13px;}
+  .privacy ul{margin:8px 0 0; padding-left:18px;}
+  .privacy li{margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="hash">#</span>
+    <a class="name" href="index.html">Convertidor</a>
+    <span class="tag">enviar imagen</span>
+  </div>
+  <div class="header-actions">
+    <nav class="topnav">
+      <a href="index.html">Convertidor</a>
+      <a href="como-usar.html">Cómo usar</a>
+      <a href="privacidad.html">Privacidad</a>
+    </nav>
+    <button class="ghost icon-btn" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema">🌙</button>
+  </div>
+</header>
+
+<main class="app">
+  <h1 class="page"><span class="hash">#</span>Enviar imagen</h1>
+  <p class="lead">Pasa una foto de tu celular a tu computador. La imagen viaja directo entre tus dos dispositivos y solo existe en sus pantallas mientras esta página esté abierta.</p>
+
+  <div class="modes">
+    <button class="mode active" id="modeRx" type="button">
+      <b>Estoy en el computador</b>
+      <span>Recibo la imagen y la veo aquí.</span>
+    </button>
+    <button class="mode" id="modeTx" type="button">
+      <b>Estoy en el celular</b>
+      <span>Elijo la imagen y la envío.</span>
+    </button>
+  </div>
+
+  <!-- ===== PANEL COMPUTADOR (recibe) ===== -->
+  <section class="panel active" id="panelRx">
+    <div class="step-title">1. Genera un código de conexión</div>
+    <div class="row"><button class="btn" id="rxStart" type="button">Generar código</button></div>
+    <textarea class="code" id="rxCode" readonly placeholder="Aquí aparecerá el código"></textarea>
+    <div class="row"><button class="btn outline" id="rxCopy" type="button">Copiar código</button></div>
+    <p class="hint">Cópialo y pégalo en el celular. Es de un solo uso: no lo compartas con nadie más.</p>
+
+    <div class="step-title">2. Pega la respuesta que te dé el celular</div>
+    <textarea class="code" id="rxAnswer" placeholder="Pega aquí la respuesta del celular"></textarea>
+    <div class="row"><button class="btn" id="rxConnect" type="button">Conectar</button></div>
+    <div class="status" id="rxStatus">Pulsa “Generar código” para empezar.</div>
+
+    <div class="preview" id="previewBox" hidden>
+      <p class="meta" id="meta"></p>
+      <img id="preview" alt="Imagen recibida">
+      <div class="row" style="justify-content:center; margin-bottom:0;">
+        <a class="btn" id="dlBtn" href="#" download>Descargar</a>
+        <button class="btn outline" id="wipeBtn" type="button">Borrar de la pantalla</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL CELULAR (envía) ===== -->
+  <section class="panel" id="panelTx">
+    <div class="step-title">1. Pega el código que te dio el computador</div>
+    <textarea class="code" id="txOffer" placeholder="Pega aquí el código del computador"></textarea>
+    <div class="row"><button class="btn" id="txAnswerBtn" type="button">Generar respuesta</button></div>
+    <textarea class="code" id="txAnswer" readonly placeholder="Aquí aparecerá la respuesta"></textarea>
+    <div class="row"><button class="btn outline" id="txCopy" type="button">Copiar respuesta</button></div>
+    <p class="hint">Cópiala y pégala de vuelta en el computador para conectar.</p>
+
+    <div class="step-title">2. Elige la imagen y envíala</div>
+    <input class="file-in" type="file" id="fileInput" accept="image/*" disabled>
+    <div class="row"><button class="btn" id="sendBtn" type="button" disabled>Enviar imagen</button></div>
+    <div class="progress" id="progressWrap"><i id="progressBar"></i></div>
+    <div class="status" id="txStatus">Pega el código del computador para empezar.</div>
+    <div class="row"><button class="btn outline" id="txClose" type="button">Cerrar conexión</button></div>
+  </section>
+
+  <div class="privacy">
+    <b>Qué pasa con tu imagen</b>
+    <ul>
+      <li>Viaja directamente de tu celular a tu computador. No pasa por ningún servidor nuestro.</li>
+      <li>No se guarda en ninguna base de datos ni en el sitio. Solo existe en la memoria de los dos dispositivos mientras la página está abierta.</li>
+      <li>Los códigos contienen la dirección de red de cada dispositivo, y el navegador usa un servicio público de Google para encontrarlos. No publiques los códigos.</li>
+      <li>Si los dos dispositivos están en redes muy distintas o muy restrictivas, la conexión puede no establecerse. Lo más seguro es estar en la misma Wi-Fi.</li>
+      <li>Si descargas la imagen, se guarda en ese dispositivo. Esa decisión es tuya.</li>
+    </ul>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <span class="footer-nav"><a href="como-usar.html">Cómo usar</a><span class="sep">·</span><a href="beneficios.html">Beneficios</a><span class="sep">·</span><a href="privacidad.html">Privacidad</a></span>
+  <span class="footer-copy">© <span id="year"></span> <strong>KODAMA LaB</strong><span class="sep">·</span>Todos los derechos reservados</span>
+</footer>
+
+<script>
+(function(){
+  // ---------- constantes ----------
+  const CODE_PREFIX = 'CNV1:';
+  const CHUNK_SIZE = 16384;               // tamaño seguro para WebRTC entre navegadores
+  const MAX_BYTES = 30 * 1024 * 1024;     // límite de 30 MB
+  const ICE = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+  // ---------- estado (solo en memoria, nunca en localStorage) ----------
+  let role = 'rx';
+  let pc = null, dc = null;
+  let rxChunks = [], rxMeta = null, objectUrl = null;
+
+  const $ = id => document.getElementById(id);
+
+  function setStatus(id, msg, kind){
+    const el = $(id);
+    el.textContent = msg;
+    el.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function formatSize(n){
+    if(n < 1024) return n + ' B';
+    if(n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+    return (n/1024/1024).toFixed(2) + ' MB';
+  }
+
+  function newPC(){
+    const p = new RTCPeerConnection({ iceServers: ICE });
+    p.onconnectionstatechange = () => {
+      if(p.connectionState === 'failed'){
+        setStatus(role === 'rx' ? 'rxStatus' : 'txStatus',
+          'No se pudo conectar. Prueba con ambos dispositivos en la misma Wi-Fi.', 'err');
+      }
+    };
+    return p;
+  }
+
+  // espera a que el navegador reúna las rutas de conexión (con tope de 8 s)
+  function waitIce(p){
+    return new Promise(resolve => {
+      if(p.iceGatheringState === 'complete') return resolve();
+      const check = () => {
+        if(p.iceGatheringState === 'complete'){
+          p.removeEventListener('icegatheringstatechange', check);
+          resolve();
+        }
+      };
+      p.addEventListener('icegatheringstatechange', check);
+      setTimeout(() => { p.removeEventListener('icegatheringstatechange', check); resolve(); }, 8000);
+    });
+  }
+
+  function encodeCode(desc){
+    return CODE_PREFIX + btoa(JSON.stringify({ type: desc.type, sdp: desc.sdp }));
+  }
+  function decodeCode(text){
+    const t = (text || '').trim();
+    if(!t.startsWith(CODE_PREFIX)) throw new Error('El código no es válido.');
+    let obj;
+    try { obj = JSON.parse(atob(t.slice(CODE_PREFIX.length))); }
+    catch(e){ throw new Error('El código no es válido.'); }
+    if(!obj || !obj.type || !obj.sdp) throw new Error('El código no es válido.');
+    return obj;
+  }
+
+  // ---------- borrado total ----------
+  function wipeAll(){
+    rxChunks = [];
+    rxMeta = null;
+    if(objectUrl){ URL.revokeObjectURL(objectUrl); objectUrl = null; }
+    $('preview').removeAttribute('src');
+    $('previewBox').hidden = true;
+    if(dc){ try{ dc.close(); }catch(e){} dc = null; }
+    if(pc){ try{ pc.close(); }catch(e){} pc = null; }
+    ['rxCode','rxAnswer','txOffer','txAnswer'].forEach(id => $(id).value = '');
+    $('fileInput').value = '';
+    $('fileInput').disabled = true;
+    $('sendBtn').disabled = true;
+    $('progressWrap').style.display = 'none';
+    $('progressBar').style.width = '0';
+  }
+
+  // ---------- COMPUTADOR (recibe) ----------
+  function attachReceiver(ch){
+    ch.binaryType = 'arraybuffer';
+    ch.onopen = () => setStatus('rxStatus', 'Conectado. Esperando la imagen del celular…', 'ok');
+    ch.onclose = () => setStatus('rxStatus', 'Conexión cerrada.');
+    ch.onmessage = (e) => {
+      if(typeof e.data === 'string'){
+        const m = JSON.parse(e.data);
+        if(m.t === 'meta'){
+          rxMeta = m;
+          rxChunks = [];
+          setStatus('rxStatus', 'Recibiendo ' + m.name + '…');
+        } else if(m.t === 'end'){
+          finishReceive();
+        }
+      } else if(rxMeta){
+        rxChunks.push(e.data);
+      }
+    };
+  }
+
+  function finishReceive(){
+    if(!rxMeta) return;
+    const blob = new Blob(rxChunks, { type: rxMeta.type || 'image/*' });
+    rxChunks = [];
+    if(blob.size !== rxMeta.size){
+      setStatus('rxStatus', 'La imagen llegó incompleta. Intenta de nuevo.', 'err');
+      rxMeta = null;
+      return;
+    }
+    if(objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(blob);
+    $('preview').src = objectUrl;
+    $('meta').textContent = rxMeta.name + ' · ' + formatSize(blob.size);
+    const dl = $('dlBtn');
+    dl.href = objectUrl;
+    dl.download = rxMeta.name || 'imagen';
+    $('previewBox').hidden = false;
+    setStatus('rxStatus', 'Imagen recibida. Solo está en esta pantalla.', 'ok');
+    rxMeta = null;
+  }
+
+  async function rxStart(){
+    wipeAll();
+    role = 'rx';
+    pc = newPC();
+    dc = pc.createDataChannel('imagen');
+    attachReceiver(dc);
+    setStatus('rxStatus', 'Generando código…');
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await waitIce(pc);
+    $('rxCode').value = encodeCode(pc.localDescription);
+    setStatus('rxStatus', 'Código listo. Pégalo en el celular y luego pega la respuesta abajo.', 'ok');
+  }
+
+  async function rxConnect(){
+    if(!pc){ setStatus('rxStatus', 'Primero genera un código.', 'err'); return; }
+    try{
+      const answer = decodeCode($('rxAnswer').value);
+      if(answer.type !== 'answer') throw new Error('Esa no es una respuesta del celular.');
+      await pc.setRemoteDescription(answer);
+      setStatus('rxStatus', 'Conectando…');
+    }catch(e){
+      setStatus('rxStatus', e.message || 'No se pudo conectar.', 'err');
+    }
+  }
+
+  // ---------- CELULAR (envía) ----------
+  function attachSender(ch){
+    const onOpen = () => {
+      setStatus('txStatus', 'Conectado. Ya puedes elegir la imagen.', 'ok');
+      $('fileInput').disabled = false;
+      $('sendBtn').disabled = !$('fileInput').files.length;
+    };
+    if(ch.readyState === 'open') onOpen(); else ch.onopen = onOpen;
+    ch.onclose = () => { setStatus('txStatus', 'Conexión cerrada.'); $('sendBtn').disabled = true; };
+  }
+
+  async function txAnswer(){
+    const raw = $('txOffer').value;     // leer antes de limpiar
+    wipeAll();
+    role = 'tx';
+    try{
+      const offer = decodeCode(raw);
+      if(offer.type !== 'offer') throw new Error('Ese no es el código del computador.');
+      pc = newPC();
+      pc.ondatachannel = (e) => { dc = e.channel; attachSender(dc); };
+      await pc.setRemoteDescription(offer);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await waitIce(pc);
+      $('txAnswer').value = encodeCode(pc.localDescription);
+      setStatus('txStatus', 'Respuesta lista. Cópiala y pégala en el computador.', 'ok');
+    }catch(e){
+      setStatus('txStatus', e.message || 'No se pudo generar la respuesta.', 'err');
+    }
+  }
+
+  async function sendImage(){
+    const file = $('fileInput').files[0];
+    if(!file || !dc || dc.readyState !== 'open') return;
+    if(!file.type.startsWith('image/')){ setStatus('txStatus', 'Elige un archivo de imagen.', 'err'); return; }
+    if(file.size > MAX_BYTES){ setStatus('txStatus', 'La imagen supera 30 MB.', 'err'); return; }
+
+    $('sendBtn').disabled = true;
+    $('progressWrap').style.display = 'block';
+    $('progressBar').style.width = '0';
+    dc.send(JSON.stringify({ t: 'meta', name: file.name, type: file.type, size: file.size }));
+    dc.bufferedAmountLowThreshold = 256 * 1024;
+
+    let buf = await file.arrayBuffer();
+    try{
+      for(let off = 0; off < buf.byteLength; off += CHUNK_SIZE){
+        // control de flujo: no saturar el canal
+        while(dc.bufferedAmount > 1024 * 1024){
+          if(dc.readyState !== 'open') throw new Error('Se cerró la conexión.');
+          await new Promise(r => {
+            const t = setTimeout(r, 500);
+            dc.addEventListener('bufferedamountlow', () => { clearTimeout(t); r(); }, { once: true });
+          });
+        }
+        if(dc.readyState !== 'open') throw new Error('Se cerró la conexión.');
+        dc.send(buf.slice(off, off + CHUNK_SIZE));
+        $('progressBar').style.width = Math.min(100, Math.round((off + CHUNK_SIZE) / buf.byteLength * 100)) + '%';
+      }
+      dc.send(JSON.stringify({ t: 'end' }));
+      setStatus('txStatus', 'Imagen enviada. Se borra de este celular al cerrar la página.', 'ok');
+    }catch(e){
+      setStatus('txStatus', e.message || 'No se pudo enviar la imagen.', 'err');
+    }finally{
+      buf = null;
+      $('sendBtn').disabled = false;
+    }
+  }
+
+  // ---------- modos ----------
+  function setMode(r){
+    wipeAll();
+    role = r;
+    $('modeRx').classList.toggle('active', r === 'rx');
+    $('modeTx').classList.toggle('active', r === 'tx');
+    $('panelRx').classList.toggle('active', r === 'rx');
+    $('panelTx').classList.toggle('active', r === 'tx');
+  }
+
+  // ---------- copiar ----------
+  function copyFrom(id){
+    const v = $(id).value;
+    if(v && navigator.clipboard) navigator.clipboard.writeText(v).catch(()=>{});
+  }
+
+  // ---------- eventos ----------
+  $('modeRx').addEventListener('click', () => setMode('rx'));
+  $('modeTx').addEventListener('click', () => setMode('tx'));
+  $('rxStart').addEventListener('click', () => rxStart().catch(e => setStatus('rxStatus', e.message, 'err')));
+  $('rxConnect').addEventListener('click', rxConnect);
+  $('rxCopy').addEventListener('click', () => copyFrom('rxCode'));
+  $('wipeBtn').addEventListener('click', () => { wipeAll(); setStatus('rxStatus', 'Pantalla limpia. Puedes generar un código nuevo.'); });
+  $('txAnswerBtn').addEventListener('click', txAnswer);
+  $('txCopy').addEventListener('click', () => copyFrom('txAnswer'));
+  $('fileInput').addEventListener('change', () => {
+    $('sendBtn').disabled = !$('fileInput').files.length || !dc || dc.readyState !== 'open';
+  });
+  $('sendBtn').addEventListener('click', sendImage);
+  $('txClose').addEventListener('click', () => { wipeAll(); setStatus('txStatus', 'Conexión cerrada y datos borrados.'); });
+  window.addEventListener('pagehide', wipeAll);
+
+  // ---------- tema (preferencia visual, no datos del usuario) ----------
+  const themeBtn = $('themeBtn');
+  const THEME_KEY = 'convertidor_theme';
+  function applyTheme(t){
+    if(t === 'dark'){ document.documentElement.setAttribute('data-theme','dark'); themeBtn.textContent = '☀️'; }
+    else { document.documentElement.removeAttribute('data-theme'); themeBtn.textContent = '🌙'; }
+  }
+  let saved = null;
+  try{ saved = localStorage.getItem(THEME_KEY); }catch(e){}
+  if(!saved) saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  applyTheme(saved);
+  themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+  });
+
+  $('year').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>

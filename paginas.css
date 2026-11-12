@@ -1,0 +1,193 @@
+:root{
+  --bg:#EDEFE7;
+  --surface:#FFFFFF;
+  --ink:#1F2620;
+  --ink-muted:#6B7568;
+  --accent:#C98A2B;
+  --accent-2:#3F6E52;
+  --line:#D7DACB;
+  --surface-2:#FAFAF6;
+  --mono: ui-monospace, 'SFMono-Regular', 'IBM Plex Mono', Menlo, Consolas, monospace;
+  --sans: -apple-system, 'Segoe UI', 'IBM Plex Sans', system-ui, sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#1A1D19;
+  --surface:#242822;
+  --ink:#E8EAE1;
+  --ink-muted:#9AA391;
+  --accent:#E0A94A;
+  --accent-2:#6DAE82;
+  --line:#39402F;
+  --surface-2:#2C312A;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- header / nav (idéntico al index) ---------- */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:var(--bg); z-index:10;
+  flex-wrap:wrap; gap:10px;
+}
+.brand{display:flex; align-items:baseline; gap:10px;}
+.brand .hash{font-family:var(--mono); color:var(--accent-2); font-weight:700; font-size:20px;}
+.brand a.name{font-family:var(--mono); font-size:18px; font-weight:700; letter-spacing:-0.02em; color:var(--ink); text-decoration:none;}
+.brand .tag{font-size:12.5px; color:var(--ink-muted); margin-left:2px;}
+.header-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.topnav{display:flex; gap:4px; align-items:center; flex-wrap:wrap;}
+.topnav a{
+  font-family:var(--mono); font-size:12.5px; color:var(--ink-muted);
+  text-decoration:none; padding:6px 10px; border-radius:6px;
+  transition:color .15s, background .15s;
+}
+.topnav a:hover, .topnav a.active{color:var(--ink); background:var(--surface-2);}
+button.ghost{
+  font-family:var(--mono); font-size:12.5px; background:transparent;
+  border:1px solid var(--line); color:var(--ink-muted);
+  padding:7px 10px; border-radius:6px; cursor:pointer; line-height:1;
+  transition:border-color .15s, color .15s;
+}
+button.ghost:hover{border-color:var(--ink-muted); color:var(--ink);}
+a.cta{
+  font-family:var(--mono); font-size:12.5px; font-weight:700;
+  background:var(--accent-2); color:#fff; text-decoration:none;
+  padding:8px 14px; border-radius:8px; transition:background .15s;
+}
+a.cta:hover{background:#345c44;}
+
+/* ---------- hero: como la cabecera de un archivo .md ---------- */
+.hero{
+  max-width:820px; margin:0 auto; padding:52px 22px 8px;
+}
+.hero .filename{
+  font-family:var(--mono); font-size:12px; color:var(--ink-muted);
+  display:inline-flex; align-items:center; gap:7px;
+  border:1px solid var(--line); border-radius:6px;
+  padding:5px 10px; margin-bottom:22px; background:var(--surface-2);
+}
+.hero .filename .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
+h1{
+  font-family:var(--mono); font-size:32px; line-height:1.15;
+  letter-spacing:-0.03em; margin:0 0 14px; font-weight:700;
+}
+h1 .hash{color:var(--accent-2); margin-right:10px;}
+.lead{font-size:17px; color:var(--ink-muted); margin:0; max-width:640px;}
+
+/* ---------- content ---------- */
+main{max-width:820px; margin:0 auto; padding:14px 22px 70px;}
+
+h2{
+  font-family:var(--mono); font-size:15px; font-weight:700;
+  letter-spacing:0.01em; margin:40px 0 14px;
+  color:var(--ink); display:flex; align-items:center; gap:9px;
+}
+h2 .mark{
+  color:var(--accent-2); font-weight:700;
+  opacity:.85;
+}
+h2::after{
+  content:""; flex:1; height:1px; background:var(--line); margin-left:4px;
+}
+p{margin:0 0 15px; font-size:15.5px;}
+ul,ol{margin:0 0 18px; padding-left:0; list-style:none;}
+ul li{
+  position:relative; padding-left:24px; margin-bottom:11px; font-size:15.5px;
+}
+ul li::before{
+  content:"-"; position:absolute; left:6px; top:0;
+  font-family:var(--mono); color:var(--accent-2); font-weight:700;
+}
+ol{counter-reset:item; padding-left:0;}
+ol li{
+  position:relative; padding-left:30px; margin-bottom:11px; font-size:15.5px;
+  counter-increment:item;
+}
+ol li::before{
+  content:counter(item) ".";
+  position:absolute; left:4px; top:0;
+  font-family:var(--mono); color:var(--accent-2); font-weight:700;
+}
+strong{color:var(--ink); font-weight:700;}
+code{
+  font-family:var(--mono); font-size:0.88em;
+  background:var(--surface-2); border:1px solid var(--line);
+  border-radius:4px; padding:1.5px 6px; color:var(--accent);
+}
+
+/* tarjeta con barra lateral (evoca un blockquote de markdown) */
+.card{
+  background:var(--surface); border:1px solid var(--line);
+  border-left:3px solid var(--accent-2);
+  border-radius:0 10px 10px 0; padding:18px 22px; margin:0 0 18px;
+}
+.card p:last-child{margin-bottom:0;}
+
+/* pasos numerados tipo lista de proceso */
+.step{
+  display:flex; gap:16px; align-items:flex-start;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:10px; padding:18px 20px; margin:0 0 14px;
+  transition:border-color .15s;
+}
+.step:hover{border-color:var(--accent-2);}
+.step .num{
+  flex:0 0 auto; width:34px; height:34px; border-radius:9px;
+  background:var(--accent-2); color:#fff; font-family:var(--mono);
+  font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center;
+}
+.step .body{flex:1;}
+.step .body h3{margin:4px 0 7px; font-family:var(--mono); font-size:15.5px; font-weight:700;}
+.step .body p{margin:0; color:var(--ink-muted); font-size:14.5px;}
+.step .body p strong{color:var(--ink);}
+
+/* pills de formatos */
+.pill{
+  display:inline-block; font-family:var(--mono); font-size:11.5px;
+  background:var(--surface-2); border:1px solid var(--line);
+  border-radius:6px; padding:4px 10px; margin:6px 6px 0 0; color:var(--ink-muted);
+}
+
+/* nota con sello ámbar (la firma del index) */
+.note{
+  font-size:14px; color:var(--ink-muted);
+  border:1px solid var(--line); border-radius:10px;
+  padding:14px 18px; margin:22px 0; background:var(--surface-2);
+  position:relative;
+}
+.note::before{
+  content:"# nota"; font-family:var(--mono); font-size:10.5px;
+  color:var(--accent); font-weight:700;
+  display:block; margin-bottom:6px; letter-spacing:0.03em;
+}
+
+/* firma tipo "renderizado a markdown" para el ahorro de tokens */
+.token-badge{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--mono); font-size:13px; color:var(--accent);
+  border:1px dashed var(--accent); border-radius:8px;
+  padding:8px 14px; margin:8px 0;
+}
+.token-badge b{font-weight:700;}
+
+hr{border:none; border-top:1px dashed var(--line); margin:34px 0;}
+
+footer.site-footer{
+  text-align:center; font-family:var(--mono); font-size:11px;
+  color:var(--ink-muted); padding:22px 16px; border-top:1px solid var(--line);
+}
+footer.site-footer a{color:var(--ink-muted); text-decoration:none;}
+footer.site-footer a:hover{color:var(--accent-2);}
+footer.site-footer .sep{opacity:.4; margin:0 6px;}
+
+@media (max-width:600px){
+  h1{font-size:26px;}
+  .hero{padding-top:38px;}
+}
