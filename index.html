@@ -250,8 +250,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function encodeCode(desc){
     return CODE_PREFIX + btoa(JSON.stringify({ type: desc.type, sdp: desc.sdp }));
   }
-  function decodeCode(text){
+  // acepta el código solo o un enlace que lo contiene después de #cnv=
+  function extractCode(text){
     const t = (text || '').trim();
+    const i = t.indexOf('#cnv=');
+    if(i >= 0){
+      try{ return decodeURIComponent(t.slice(i + 5).split('&')[0]).trim(); }catch(e){ return ''; }
+    }
+    return t;
+  }
+  function decodeCode(text){
+    const t = extractCode(text);
     if(!t.startsWith(CODE_PREFIX)) throw new Error('El código no es válido.');
     let obj;
     try { obj = JSON.parse(atob(t.slice(CODE_PREFIX.length))); }
@@ -318,7 +327,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         ctx.drawImage(v, 0, 0, c.width, c.height);
         const img = ctx.getImageData(0, 0, c.width, c.height);
         const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-        if(code && code.data && code.data.startsWith(CODE_PREFIX)){
+        if(code && code.data && (code.data.startsWith(CODE_PREFIX) || code.data.includes('#cnv='))){
           const text = code.data;
           stopScan();
           $('txOffer').value = text;
@@ -430,8 +439,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     const code = encodeCode(pc.localDescription);
     $('rxCode').value = code;
     try{
-      drawQR(code, $('rxQr'));
-      setStatus('rxStatus', 'Código listo. Escanéalo con el celular y luego pega aquí su respuesta.', 'ok');
+      // el QR es un enlace a esta página con el código al final: la cámara del celular lo abre directo
+      const link = location.href.split('#')[0] + '#cnv=' + encodeURIComponent(code);
+      drawQR(link, $('rxQr'));
+      setStatus('rxStatus', 'Código listo. Escanéalo con la cámara del celular y luego pega aquí su respuesta.', 'ok');
     }catch(e){
       $('rxQr').hidden = true;
       setStatus('rxStatus', 'El código es demasiado largo para un QR. Usa el texto (despliega “¿No puedes escanear?”).', 'err');
@@ -579,6 +590,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     applyTheme(next);
     try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
   });
+
+  // ---------- abrir desde el QR: el celular entra con el código en el enlace ----------
+  const hashMatch = location.hash.match(/cnv=([^&]+)/);
+  if(hashMatch){
+    let code = '';
+    try{ code = decodeURIComponent(hashMatch[1]); }catch(e){}
+    history.replaceState(null, '', location.pathname + location.search);
+    setMode('tx');
+    $('txOffer').value = code;
+    txAnswer();
+  }
 
   $('year').textContent = new Date().getFullYear();
 })();
