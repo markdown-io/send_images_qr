@@ -42,6 +42,13 @@
   .status{font-family:var(--mono); font-size:12.5px; color:var(--ink-muted); margin:12px 0; min-height:20px;}
   .status.ok{color:var(--accent-2);}
   .status.err{color:#B5472B;}
+  .paste-zone{
+    border:1px dashed var(--line); border-radius:10px; padding:18px 14px; min-height:64px;
+    text-align:center; color:var(--ink-muted); font-family:var(--mono); font-size:13px;
+    margin:10px 0; outline:none; background:var(--surface-2); cursor:text;
+  }
+  .paste-zone:focus{border-color:var(--accent-2); color:var(--ink);}
+  .paste-zone:empty::before{content:attr(data-placeholder);}
   .file-in{font-family:var(--mono); font-size:13px; color:var(--ink); margin:8px 0;}
   .progress{height:6px; background:var(--line); border-radius:4px; overflow:hidden; margin:10px 0; display:none;}
   .progress i{display:block; height:100%; width:0; background:var(--accent-2); transition:width .15s;}
@@ -124,6 +131,8 @@
   <!-- ===== TRANSFERENCIA (ambos lados, al conectar) ===== -->
   <section class="transfer" id="transfer" hidden>
     <div class="step-title">Enviar imagen</div>
+    <div class="paste-zone" id="pasteZone" contenteditable="true" role="textbox" aria-label="Zona para pegar una imagen" data-placeholder="Toca aquí y pega una imagen copiada (Ctrl+V o mantén presionado › Pegar)"></div>
+    <p class="hint">También puedes pegar con Ctrl+V en cualquier parte de la página, o elegir un archivo:</p>
     <input class="file-in" type="file" id="fileInput" accept="image/*" disabled>
     <p class="hint">Las imágenes WebP, GIF u otros formatos se convierten a PNG antes de enviarse. JPG y PNG viajan tal cual.</p>
     <div class="row"><button class="btn" id="sendBtn" type="button" disabled>Enviar imagen</button></div>
@@ -376,7 +385,10 @@
   }
 
   async function sendImage(){
-    const f = $('fileInput').files[0];
+    await sendFile($('fileInput').files[0]);
+  }
+
+  async function sendFile(f){
     if(!f || !dc || dc.readyState !== 'open' || busy) return;
     busy = true; refreshSend();
     $('progressWrap').style.display = 'block';
@@ -412,6 +424,28 @@
       refreshSend();
     }
   }
+
+  // ---------- pegar imagen copiada ----------
+  function pickImage(e){
+    const items = [...((e.clipboardData && e.clipboardData.items) || [])];
+    const it = items.find(i => i.kind === 'file' && i.type.startsWith('image/'));
+    return it ? it.getAsFile() : null;
+  }
+  $('pasteZone').addEventListener('paste', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = pickImage(e);
+    if(!f){ setXfer('Eso no es una imagen. Copia una imagen e intenta de nuevo.', 'err'); return; }
+    sendFile(f);
+  });
+  $('pasteZone').addEventListener('input', () => { $('pasteZone').textContent = ''; });
+  window.addEventListener('paste', e => {
+    if($('transfer').hidden) return;
+    const a = document.activeElement;
+    if(a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT')) return;   // no interferir con los campos de código
+    const f = pickImage(e);
+    if(f){ e.preventDefault(); sendFile(f); }
+  });
 
   // ---------- modos ----------
   function setMode(r){
